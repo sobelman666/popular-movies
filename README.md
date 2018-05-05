@@ -1,2 +1,2 @@
-# popular-movies
+# Popular Movies
 Popular movies app
