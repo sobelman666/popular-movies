@@ -57,3 +57,6 @@ freeline_project_description.json
 
 # MacOS folder attributes
 .DS_Store
+
+# TMDb API key
+tmdb.proprties
