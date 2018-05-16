@@ -3,8 +3,8 @@ package com.sobelman.and.popularmovies;
 import android.content.Context;
 
 /**
- * Interface used in MainActivity.FetchMovieDataTask. Helps enable FetchMovieDataTask to be
- * declared static.
+ * Interface to be implemented by callers of FetchMovieDataTask so they can pass along context
+ * information and be notified of task completion.
  */
 public interface FetchMovieCallback {
     /**
