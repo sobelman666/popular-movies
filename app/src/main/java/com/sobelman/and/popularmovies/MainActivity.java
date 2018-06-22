@@ -2,13 +2,12 @@ package com.sobelman.and.popularmovies;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -21,17 +20,12 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.sobelman.and.popularmovies.util.MovieParsingUtils;
 import com.sobelman.and.popularmovies.util.NetworkUtils;
-
-import java.io.IOException;
-import java.net.URL;
 
 /**
  * Main activity for the app. Much of the design is based on Sunshine.
  */
-public class MainActivity extends AppCompatActivity implements FetchMovieCallback,
-        MovieAdapter.OnClickHandler, SharedPreferences.OnSharedPreferenceChangeListener {
+public class MainActivity extends AppCompatActivity implements MovieAdapter.OnClickHandler {
 
     private static final String ABOUT_DIALOG_TAG = "AboutDialog";
 
@@ -39,9 +33,6 @@ public class MainActivity extends AppCompatActivity implements FetchMovieCallbac
     private MovieAdapter mMovieAdapter;
     private TextView mErrorDisplay;
     private ProgressBar mProgressBar;
-    private FetchMovieDataTask mFetchTask;
-
-    private boolean isPreferenceUpdated = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,26 +57,32 @@ public class MainActivity extends AppCompatActivity implements FetchMovieCallbac
 
         mProgressBar = findViewById(R.id.progressBar);
 
-        // register for preference changes so RecyclerView will update when list style is changed
-        PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(this);
-
         boolean apiKeyExists = NetworkUtils.loadApiKey(this);
 
         if (!apiKeyExists) {
             mErrorDisplay.setText(R.string.no_api_key);
         } else {
-            loadMovieData();
+            setUpViewModel();
         }
     }
 
-    private void loadMovieData() {
-        // since a loader isn't being used, manually cancel any existing fetch task
-        if (mFetchTask != null) {
-            mFetchTask.cancel(true);
-        }
+    private void setUpViewModel() {
         mProgressBar.setVisibility(View.VISIBLE);
-        mFetchTask = new FetchMovieDataTask();
-        mFetchTask.execute(this);
+        MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+        viewModel.getMovieData().observe(this, new Observer<TMDbMovie[]>() {
+            @Override
+            public void onChanged(@Nullable TMDbMovie[] movies) {
+                mProgressBar.setVisibility(View.INVISIBLE);
+
+                if (movies == null) {
+                    mErrorDisplay.setText(R.string.error_movie_list);
+                    showError();
+                } else {
+                    showMovieList();
+                    mMovieAdapter.setMovieData(movies);
+                }
+            }
+        });
     }
 
     private void showMovieList() {
@@ -96,22 +93,6 @@ public class MainActivity extends AppCompatActivity implements FetchMovieCallbac
     private void showError() {
         mRecyclerView.setVisibility(View.INVISIBLE);
         mErrorDisplay.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (isPreferenceUpdated) {
-            mMovieAdapter.setMovieData(null);
-            loadMovieData();
-            isPreferenceUpdated = false;
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -141,34 +122,6 @@ public class MainActivity extends AppCompatActivity implements FetchMovieCallbac
         Intent intent = new Intent(this, MovieDetailActivity.class);
         intent.putExtra(MovieDetailActivity.EXTRA_MOVIE, selectedMovie);
         startActivity(intent);
-    }
-
-    // from FetchMovieCallback, used by FetchMovieDataTask to access shared preferences
-    @Override
-    public Context getContext() {
-        return this;
-    }
-
-    // from FetchMovieCallback, called by FetchMovieDataTask after the movie data is fetched
-    @Override
-    public void onFetchCompleted(TMDbMovie[] movies) {
-        mProgressBar.setVisibility(View.INVISIBLE);
-
-        if (movies == null) {
-            mErrorDisplay.setText(R.string.error_movie_list);
-            showError();
-        } else {
-            showMovieList();
-            mMovieAdapter.setMovieData(movies);
-        }
-
-        // the task is done, so set the instance variable to null
-        mFetchTask = null;
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
-        isPreferenceUpdated = true;
     }
 
     /**

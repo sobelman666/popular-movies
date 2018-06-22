@@ -8,12 +8,19 @@
     <string name="no_data">Unavailable</string>
     <string name="pref_popular_label">Most Popular</string>
     <string name="pref_rating_label">Top Rated</string>
+    <string name="pref_favorite_label">Favorites</string>
     <string name="pref_popular_value" translatable="false">popular</string>
     <string name="pref_rating_value" translatable="false">rating</string>
+    <string name="pref_favorite_value" translatable="false">favorite</string>
     <string name="pref_list_style" translatable="false">pref_list_style</string>
     <string name="pref_list_style_label">List style</string>
     <string name="action_settings_label">Settings</string>
     <string name="action_about_label">About</string>
     <string name="tmdb_attribution">This product uses the TMDb API but is not endorsed or certified by TMDb.</string>
     <string name="tmdb_logo_description">TMDb logo</string>
+    <string name="label_trailers">Trailers:</string>
+    <string name="label_reviews">Reviews:</string>
+    <string name="description_trailer_thumbnail">trailer thumbnail</string>
+    <string name="label_favorite">Favorite</string>
+    <string name="favorite_button_description">Favorite button</string>
 </resources>

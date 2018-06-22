@@ -32,6 +32,15 @@ public class NetworkUtils {
     // poster image size path
     private static final String IMAGE_SIZE_PATH = "w185";
 
+    // videos path
+    private static final String VIDEOS_PATH = "videos";
+    // reviews path
+    private static final String REVIEWS_PATH = "reviews";
+
+    // YouTube video thumbnails URI components
+    private static final String YOUTUBE_THUMBNAIL_BASE_URL = "http://img.youtube.com/vi";
+    private static final String YOUTUBE_DEFAULT_THUMBNAIL_FILE_NAME = "default.jpg";
+
     // API key query parameter
     private static final String API_KEY_PARAM = "api_key";
 
@@ -104,6 +113,38 @@ public class NetworkUtils {
                 .build();
     }
 
+    /**
+     * Builds the URL for retrieving videos for a particular movie.
+     *
+     * @param movieId the ID of the movie in the TMDb system.
+     * @return the URL to connect to.
+     */
+    public static URL buildVideosURL(int movieId) {
+        return buildMovieDetailURL(movieId, VIDEOS_PATH);
+    }
+
+    /**
+     * Builds the URL for retrieving reviews for a particular movie.
+     *
+     * @param movieId the ID of the movie in the TMDb system.
+     * @return the URL to connect to.
+     */
+    public static URL buildReviewsURL(int movieId) {
+        return buildMovieDetailURL(movieId, REVIEWS_PATH);
+    }
+
+    // helper method for building movie detail URLs
+    private static URL buildMovieDetailURL(int movieId, String path) {
+        Uri builtUri = Uri.parse(MOVIE_BASE_URL)
+                .buildUpon()
+                .appendPath(String.valueOf(movieId))
+                .appendPath(path)
+                .appendQueryParameter(API_KEY_PARAM, API_KEY)
+                .build();
+
+        return buildURLFromUri(builtUri);
+    }
+
     // helper for building URLs from a given Uri
     private static URL buildURLFromUri(Uri uri) {
         URL url = null;
@@ -116,6 +157,20 @@ public class NetworkUtils {
 
         Log.i(TAG, "built URL: " + url);
         return url;
+    }
+
+    /**
+     * Builds a Uri for retrieving the default thumbnail image for a YouTube video.
+     *
+     * @param videoKey the identifying key of the video for which a thumbnail image is desired.
+     * @return a Uri from which the thumbnail image can be downloaded.
+     */
+    public static Uri buildTrailerThumbnailUri(String videoKey) {
+        return Uri.parse(YOUTUBE_THUMBNAIL_BASE_URL)
+                .buildUpon()
+                .appendPath(videoKey)
+                .appendPath(YOUTUBE_DEFAULT_THUMBNAIL_FILE_NAME)
+                .build();
     }
 
     /**
